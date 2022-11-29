@@ -1,0 +1,15 @@
+
+button[disabled]{
+  border: 1px solid #999999;
+  background-color: #cccccc;
+  color: #666666;
+}
+
+.noValidChild {
+  margin-top: 1rem; /* kan behövas justeras lite*/
+  width: 25rem; /* Måste justeras lite */
+  background-color: rgba(0, 89, 184, 0.2);
+  padding: 3rem;
+  border-radius: 2rem;
+  border: 2px solid rgba(0, 17, 36, 0.2);
+}
