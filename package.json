@@ -4,8 +4,9 @@
   "private": true,
   "proxy": "http://localhost:8000",
   "dependencies": {
-		"@haninge-digit/digit-ui-package-formbuilder": "0.1.7",
-		"@testing-library/jest-dom": "^5.16.5",
+		"@haninge-digit/digit-ui-package-formbuilder": "0.2.0",
+    "@haninge-digit/digit-ui-package-core": "0.3.2",
+    "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
     "axios": "^0.27.2",
