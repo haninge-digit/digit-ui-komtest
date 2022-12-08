@@ -10,7 +10,7 @@ const DisabledField = ({
 	const noop = () => {};
 
 	return (
-		<InputField label={label} name={value} inputValue={value} disabled={true} rules={{}} register={noop} errors={{}} />
+		<InputField label={label} name={label} inputValue={value} disabled={true} rules={{}} register={noop} errors={{}} />
 	)
 }
 

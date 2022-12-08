@@ -54,7 +54,7 @@ module.exports = {
   },
   plugins: [],
   output: {
-    filename: "app.js",
+    filename: "kom-test.js",
     path: path.resolve(__dirname, "./build"),
     publicPath: "/",
   },

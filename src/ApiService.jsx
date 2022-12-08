@@ -16,6 +16,10 @@ export const workerPatch = async (workerName, body) => {
   return await axios.patch(`/api/digit/worker/${workerName}`, body);
 }
 
+export const workerDelete = async (workerName, body) => {
+  return await axios.delete(`/api/digit/worker/${workerName}`, body);
+}
+
 export const workflowStart = async (workflowName, body) => {
   return await axios.post(`/api/digit/workflow/${workflowName}`, body);
 }

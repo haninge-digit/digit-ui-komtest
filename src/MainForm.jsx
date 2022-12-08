@@ -1,8 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 
 import DisabledField from "./miniComponents/DisabledField.jsx";
 import RequiredField from "./miniComponents/RequiredField.jsx";
+import { InputField } from "@haninge-digit/digit-ui-package-formbuilder";
+import { DefaultApp, LoadingIndicator } from "@haninge-digit/digit-ui-package-core";
+
 
 import * as ApiService from "./ApiService.jsx";
 
@@ -11,78 +14,112 @@ const MainForm = () => {
 
 	console.log("Render MainForm")
 
-	const form = useForm()				// Main form that hold all input values. Validation will trigger on the blur event.
+	const form = useForm(
+		{
+			defaultValues: {
+				"personId": "",
+				"fullName": "",
+				"address": "",
+				"zipcode": "",
+				"city": "",
+				"email": "",
+				"mobile": "",
+			}
+		}
+	)
+	form.watch("personId");		// Any change in "personId" will rerender the whole form!
 
-	if (form.getValues("userData") === undefined) {
-		form.setValue("userData", userData)
-		form.setValue("userData_email", userData.email)		// Set an extra parameter due to a bug in our component library
-		form.setValue("userData_mobile", userData.mobile)		// Set an extra parameter due to a bug in our component library
-	}
+	const [isLoading, setIsLoading] = useState(false);			// true if loading indicator should be visible
 
-	const [userData, setUserData] = useState();
-	const [familyInfo, setFamilyInfo] = useState();
-	const [submitted, setSubmitted] = useState(false);
-
-	const fixSendData = formData => {
-		console.log(formData)
-		const d = {}
-		d.parent1 = formData.userData
-		d.parent1.email = formData.userData_email
-		d.parent1.mobile = formData.userData_mobile
-		d.parent2 = formData.parent2Data
-		d.parent2.email = formData.parent2Data_email
-		d.children = []
-		// for (var i = 0; i < formData.childSelect.length; i++) {
-		// const child = formData.childSelecet[i]
-		for (const child of formData.childSelect) {
-			d.children.push({ pnum: `${child}`, name: `${familyInfo.children[child].fullName}` });
-		};
-		d.purpose = formData.purpose;
-		d.ongoingDispute = formData.ongoingDispute;
-		d.previousDialog = formData.previousDialog;
-
-		const sendData = { samtalsData: d };
-		return (sendData)
-	}
-
-
-	const submitForm = () => {
-		console.log("SUBMITTING DATA:");
-		const formData = form.getValues();
-		console.log(formData);
-
-		const sendData = fixSendData(formData)
-
-		const parent1Mail = formData.userData_email;
-		const parent2Mail = formData.parent2Data_email;
-		const parent2Pnum = formData.parent2Data.personId;
-
-		const call = `hakan_testar?approverMail=${parent2Mail}&approver=${parent2Pnum}&approvedMail=hakan@violaberg.nu`
-		// ApiService.workflowStart(call, sendData)
-		setSubmitted(true);
-	}
-
+	const initUserData = (userData) => {
+		if (userData) {
+			form.setValue("personId", userData.personId);
+			form.setValue("fullName", userData.fullName);
+			form.setValue("address", userData.address);
+			form.setValue("zipcode", userData.zipcode);
+			form.setValue("city", userData.city);
+			form.setValue("email", userData.email);
+			form.setValue("mobile", userData.mobile);
+		}
+		else {
+			form.setValue("personId", "");
+			form.setValue("fullName", "");
+			form.setValue("address", "");
+			form.setValue("zipcode", "");
+			form.setValue("city", "");
+			form.setValue("email", "");
+			form.setValue("mobile", "");
+		}
+	};
 
 	const fetchUserData = async () => {
+		setIsLoading(true);
 		await ApiService.workerGet("userinfo").then((response) => {
-			console.log("Got user info")
-			setUserData(response.data.user)
+			console.log("Got user info");
+			setIsLoading(false);
+			initUserData(response.data.user);
 		}).catch((error) => {
+			setIsLoading(false);
 			console.log("Error when retrieving user information")
 		});
 	}
 
+	const patchUserData = async () => {
+		const d = {}
+		d.email = form.getValues("email")
+		d.mobile = form.getValues("mobile")
+		console.log(d)
+		await ApiService.workerPatch("userinfo", d).then((response) => {
+			console.log("PATCH OK")
+		}).catch((error) => {
+			console.log("Error when patching user information")
+		});
+	}
+
+	const deleteUserData = async () => {
+		await ApiService.workerDelete("userinfo").then((response) => {
+			console.log("DELETE OK");
+			initUserData();
+		}).catch((error) => {
+			console.log("Error when deleting user information")
+		});
+	}
+
+
 	return (
 		<>
-			<h2>Information om DIG</h2>
-			<div>
-				<DisabledField label="Personnummer" value={userData.personId} />
-				<DisabledField label="För och efternamn" value={userData.fullName} />
-				<DisabledField label="Address" value={userData.address} />
-				<DisabledField label="Postnummer och ort" value={userData.zipcode + " " + userData.city} />
-				<InputField label="E-postadress" name="userData_email" rules={{}} register={form.register}  />
-				<RequiredField label="E-postadress" name="userData_email" form={form} />
-				<RequiredField label="Mobiltelefon" name="userData_mobile" form={form} />
+			<div className="EPiServerForms">
+				<div className="Form__MainBody">
+					<section className="Form__Element FormStep ">
+						<h2>Information</h2>
+						<div>
+							<DisabledField label="Personnummer" value={form.getValues("personId")} />
+							<DisabledField label="För och efternamn" value={form.getValues("fullName")} />
+							<DisabledField label="Address" value={form.getValues("address")} />
+							<DisabledField label="Postnummer och ort" value={form.getValues("zipcode") + " " + form.getValues("city")} />
+							<InputField label="E-postadress" name="email" rules={{ required: false }} register={form.register} errors={{}} errorMessages={{}} />
+							<InputField label="Mobiltelefon" name="mobile" rules={{ required: false }} register={form.register} errors={{}} errorMessages={{}} />
+						</div>
+						<div>
+							<button aria-label="Hämta" type="button" onClick={(e) => initUserData()}>
+								Rensa
+							</button>
+							<p></p>
+							{isLoading && (
+								<div className="loader"></div>
+							)}
+							<button aria-label="Hämta" type="button" onClick={(e) => fetchUserData()}>
+								Hämta
+							</button>
+							<button aria-label="Uppdatera" type="button" onClick={(e) => patchUserData()}>
+								Uppdatera
+							</button>
+							<button aria-label="Radera" type="button" onClick={(e) => deleteUserData()}>
+								Radera
+							</button>
+						</div>
+					</section>
+				</div>
 			</div>
 		</>
 	);
